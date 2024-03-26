@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# pylint: disable=no-member
 '''
    Does API logs extraction and analysis
 '''
