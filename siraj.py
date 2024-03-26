@@ -5,6 +5,8 @@
 import argparse
 import os
 import sys
+from datetime import date
+from dateutil.relativedelta import relativedelta
 import alerts_from_api
 import alerts_from_csv
 
@@ -19,7 +21,7 @@ def run():
                         help='Path to output HTML file, \
                         if not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html')
     parser.add_argument('--api_key', '-a', help='Key to use')
-    parser.add_argument('--days_back', '-d', help='How many days back to scrape')
+    parser.add_argument('--days_back', '-d', type=int, help='How many days back to scrape')
     args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
     if args.mode == 'api':
@@ -29,9 +31,17 @@ def run():
         elif not args.days_back:
             sys.exit('Please specify how far back with the -d option')
         else:
+            # Generate date and API URL
+            raw_date = date.today() + relativedelta(days=-args.days_back)
+            t_date = raw_date.strftime("%d-%m-%Y")
+            api_url = f"https://api.opsgenie.com/v2/alerts/?query=createdAt>{t_date}&limit=100"
+            headers = {
+                       "Content-Type": "application/json",
+                       "Authorization": f"GenieKey {args.api_key}"
+                      }
             alerts_from_api.api_analysis(
-                                          api_key=args.api_key,
-                                          days_back=args.days_back,
+                                          api_url=api_url,
+                                          headers=headers,
                                           output=args.output
                                         )
     else:

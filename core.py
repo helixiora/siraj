@@ -1,16 +1,19 @@
 '''
   Core functions
 '''
+from datetime import datetime
 import os
 import numpy as np
 import pandas as pd
 
-def sanatize(df):
+
+def sanatize(d_f):
     '''
       Returns cleaned up dataframe with colums for alert, instance and count, if source is CSV.
-      First arg is the dataframe itself. Here we can add data wrangling when source is != prometheus.
+      First arg is the dataframe itself.
+      Here we can add data wrangling when source is != prometheus.
     '''
-    a_df = df[["Message", "Count"]].copy()
+    a_df = d_f[["Message", "Count"]].copy()
     a_df["Alert"] = a_df["Message"].str.split(" ").str.get(2)
     # Determine if alert is for Disk, for some reason
     # opsgenie interprets the disc as the instance...
@@ -53,15 +56,22 @@ def ingest_api(data):
     return([alerts, naughty_hosts])
 
 
-def get_counts(df, index):
+def get_counts(d_f, index):
     '''
       Takes a dataframe and index.
       Returns a dataframe with sums of count by index.
     '''
-    a_df = df.groupby(index)['Count'].sum()
+    a_df = d_f.groupby(index)['Count'].sum()
     a_df = pd.DataFrame({index:a_df.index, 'Count':a_df.values})
     return a_df.sort_values('Count', ascending=False)
 
+def get_timestamp():
+    '''
+      Returns timestamp string to be used in file naming
+    '''
+    d_t = datetime.now()
+    time_stamp = d_t.strftime("%d-%m-%Y_%H:%M:%S")
+    return time_stamp
 
 def generate_output(output, time_stamp, alerts, instances):
     '''
@@ -71,7 +81,7 @@ def generate_output(output, time_stamp, alerts, instances):
     '''
     if not output:
         output = os.getcwd() + "/ops_genie_analysis_" + time_stamp + ".html"
-    # TODO consider using a template file and concatenate that.
+    # Consider using a template file and concatenate that.
     output_content_1 = "<h2> Alerts: </h2>" + "\n" + alerts.to_html(justify="center", index=False)
     output_content_2 = "\n" + "<h2> Naughty Hosts: </h2>" + "\n"
     output_content_3 = instances.to_html(justify="center", index=False)

@@ -2,7 +2,6 @@
 '''
   Does CSV analysis related functions
 '''
-from datetime import datetime
 import pandas as pd
 import core
 
@@ -13,8 +12,6 @@ def csv_analysis(file, output):
       Prints instances and alerts dataframes, generates output file.
     '''
     data = pd.read_csv(file)
-    d_t = datetime.now()
-    time_stamp = d_t.strftime("%d-%m-%Y_%H:%M:%S")
 
     # Actual data manipulation
     data = core.sanatize(data)
@@ -24,7 +21,7 @@ def csv_analysis(file, output):
     # Results
     print(alerts)
     print(instances)
-
+    time_stamp = core.get_timestamp()
     # Generate output:
     core.generate_output(
                           output=output,
