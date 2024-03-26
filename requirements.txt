@@ -1,0 +1,4 @@
+numpy==1.26.4
+pandas==2.2.1
+python_dateutil==2.8.2
+Requests==2.31.0
