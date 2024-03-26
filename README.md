@@ -26,7 +26,7 @@ options:
                         Run mode
   --file FILE, -f FILE  Path to the file to use
   --output OUTPUT, -o OUTPUT
-                        Path to output HTML file, if not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html
+                        Path to output HTML file. This file will be OVERWRITTEN. If not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html 
   --api_key API_KEY, -a API_KEY
                         Key to use
   --days_back DAYS_BACK, -d DAYS_BACK
