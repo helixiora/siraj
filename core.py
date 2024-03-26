@@ -82,10 +82,11 @@ def generate_output(output, time_stamp, alerts, instances):
     if not output:
         output = os.getcwd() + "/ops_genie_analysis_" + time_stamp + ".html"
     # Consider using a template file and concatenate that.
+    output_content_0 = f"<h2>Generated @ {time_stamp}</h2>"
     output_content_1 = "<h2> Alerts: </h2>" + "\n" + alerts.to_html(justify="center", index=False)
     output_content_2 = "\n" + "<h2> Naughty Hosts: </h2>" + "\n"
     output_content_3 = instances.to_html(justify="center", index=False)
-    output_content = output_content_1 + output_content_2 + output_content_3
+    output_content = output_content_0 + output_content_1 + output_content_2 + output_content_3
     with open(output, 'w', encoding='UTF-8') as output_file:
         output_file.write(output_content)
     output_file.close()
