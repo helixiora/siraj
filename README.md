@@ -6,7 +6,7 @@ alerts, so that you start seeing the big picture. It's in Arabic because Gennie 
 
 ### Installation
 
-As of right now you need to git clone the source code, I'm working on packaging it so as to distribute a .deb package.
+As of right now you need to git clone the source code, I'm working on packaging, so check https://github.com/lutenica/siraj/releases for more options.
 
 ### Requirements
 
