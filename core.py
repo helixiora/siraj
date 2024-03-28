@@ -55,6 +55,19 @@ def ingest_api(data):
 
     return([alerts, naughty_hosts])
 
+def add_percentages(d_f):
+    '''
+       Takes a dataframe.
+       Returns a dataframe with added percentages and sums.
+    '''
+    # Add sum
+    sum_num = d_f.sum(numeric_only=True)['Count']
+    a_sum = ('Total', sum_num)
+    d_f.loc[len(d_f)] = a_sum
+    # Calc percentage
+    d_f['Percentage'] = (round((d_f["Count"] / sum_num), 4)) * 100
+
+    return d_f
 
 def get_counts(d_f, index):
     '''
@@ -73,12 +86,20 @@ def get_timestamp():
     time_stamp = d_t.strftime("%d-%m-%Y_%H:%M:%S")
     return time_stamp
 
-def generate_output(output, time_stamp, alerts, instances):
+def generate_output(output, alerts, instances):
     '''
+      Do final sorting of the dataframes.
       Generates html file output.
-      Takes output path, time_stamp, alerts (dataframe) and instances (dataframe)
+      Takes output path, alerts (dataframe) and instances (dataframe)
       If output isn't specified writes to current dir.
     '''
+    alerts = get_counts(alerts, index="Alert")
+    instances = get_counts(instances, index="Instance")
+    alerts = add_percentages(alerts)
+    instances = add_percentages(instances)
+    time_stamp = get_timestamp()
+    print(alerts)
+    print(instances)
     if not output:
         output = os.getcwd() + "/ops_genie_analysis_" + time_stamp + ".html"
     # Consider using a template file and concatenate that.
@@ -89,4 +110,3 @@ def generate_output(output, time_stamp, alerts, instances):
     output_content = output_content_0 + output_content_1 + output_content_2 + output_content_3
     with open(output, 'w', encoding='UTF-8') as output_file:
         output_file.write(output_content)
-    output_file.close()

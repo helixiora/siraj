@@ -137,9 +137,8 @@ As you've seen in the examples Siraj outputs data to stdout and it also generate
 
 ### Limitations
 
-Currently the output file format itself is not plugable/modifiable (see the TODO in core.py).
 The only data I have available for it to work with in OpsGenie is Prometheus generated. If I can get my hands on something more I'll extend this so it can interpret that properly too.
-I also need to work on building  a .deb package.
+Your prometheus alerts need to not have spaces in their names. The logic uses slicing on spaces to guess that the host is the third field, so YMMV. The best way to bypass this is to extend the code to have an input file with the list of your hosts so it can look for those in the source data.
 
 ### Contributions
 

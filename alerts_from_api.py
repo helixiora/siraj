@@ -40,11 +40,13 @@ def api_analysis(api_url, headers, output):
     alerts = pd.DataFrame(alert_rows, columns=['Alert', 'Count'])
     instances = pd.DataFrame(instance_rows, columns=['Instance', 'Count'])
 
-    # Lastly sort and output
-    alerts = core.get_counts(alerts, index="Alert")
-    instances = core.get_counts(instances, index="Instance")
+    # Sort and add percentages.
+    #alerts = core.get_counts(alerts, index="Alert")
+    #instances = core.get_counts(instances, index="Instance")
+    #alerts = core.add_percentages(alerts)
+    #instances = core.add_percentages(instances)
 
-    print(alerts)
-    print(instances)
-    time_stamp = core.get_timestamp()
-    core.generate_output(output=output, time_stamp=time_stamp, alerts=alerts, instances=instances)
+    #print(alerts)
+    #print(instances)
+    #time_stamp = core.get_timestamp()
+    core.generate_output(output=output, alerts=alerts, instances=instances)

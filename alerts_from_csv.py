@@ -17,15 +17,8 @@ def csv_analysis(file, output):
     data = core.sanatize(data)
     alerts = core.get_counts(data, index="Alert")
     instances = core.get_counts(data, index="Instance")
+    alerts = core.add_percentages(alerts)
+    instances = core.add_percentages(instances)
 
     # Results
-    print(alerts)
-    print(instances)
-    time_stamp = core.get_timestamp()
-    # Generate output:
-    core.generate_output(
-                          output=output,
-                          time_stamp=time_stamp,
-                          alerts=alerts,
-                          instances=instances
-                        )
+    core.generate_output( output=output, alerts=alerts, instances=instances )
