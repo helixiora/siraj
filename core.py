@@ -3,22 +3,50 @@
 '''
 from datetime import datetime
 import os
+import sys
 import numpy as np
 import pandas as pd
 
 
-def sanatize(d_f):
+def get_prom_instances(prom_json):
+    '''
+       Returns list of all targets from prom api url endpoint
+       Takes the json object from requests
+    '''
+    targets = []
+    data = prom_json['data']['activeTargets']
+    for target in data:
+        instance = target['labels']['instance']
+        targets.append(instance)
+
+    return targets
+
+def get_prom_rules(prom_json):
+    '''
+       Returns list of all configured alerts from prom api
+       Takes json objects
+    '''
+    rules = []
+    data = prom_json['data']['groups']
+    for group in data:
+        for rule in group['rules']:
+            rules.append(rule['name'])
+
+    return rules
+
+def prom_csv_conversion(d_f):
     '''
       Returns cleaned up dataframe with colums for alert, instance and count, if source is CSV.
-      First arg is the dataframe itself.
-      Here we can add data wrangling when source is != prometheus.
+      Takes the dataframe itself.
+      Note this relies on slicing so as to keep it offline, so it can have weird behavior
     '''
     a_df = d_f[["Message", "Count"]].copy()
     a_df["Alert"] = a_df["Message"].str.split(" ").str.get(2)
     # Determine if alert is for Disk, for some reason
     # opsgenie interprets the disc as the instance...
     a_df["DiskAlert"] = a_df["Alert"].str.contains("Disk")
-    # Based on that we will choose a different field for the instance:
+    # Based on that we will choose a different field for the instance.
+    # Slice me nice
     a_df["Instance"] = np.where(
                                  a_df["DiskAlert"] is False,
                                  a_df["Message"].str.split(" ").str.get(3),
@@ -28,10 +56,10 @@ def sanatize(d_f):
 
     return a_df
 
-def ingest_api(data):
+def prom_data_conversion(data, targets, rules):
     '''
-      Returns list of 2 elements: alerts and hosts data from
-      provided source data from API. This also needs modification when source is != prometheus.
+      Returns list of 2 lists, one containing the alerts, the other the naughty hosts
+      Takes data (raw data from opsgenie), list of targets and list of rules.
     '''
     alerts = []
     naughty_hosts = []
@@ -39,19 +67,25 @@ def ingest_api(data):
         raw_alert = dict((k, val[k]) for k in ['message', 'count']
                           if k in val)
 
-        # For some reason with disk full alerts it interprets the disk as the instance
         message = raw_alert['message']
-        if "Disk" in message:
-            split = 5
-        else:
-            split = 3
-
-        instance = message.split(" ")[split]
         count = raw_alert['count']
-        alert = { message.split(" ")[2]: count }
-        host = { instance: count }
+        # Find out if our target is contained in the list of hosts
+        # Somehow this doesn't work with any so using list comp...
+        # This also mandates the if clause to skip unmatched targets.
+        target = [ t for t in targets if t in message ]
+        if len(target) < 1:
+            continue
+        instance = (target[0], count)
+        naughty_hosts.append(instance)
+        # List comprehension here again since any didn't work...
+        # Crash out here as final check as obviously our source data
+        # isn't purely prometheus. This needs to be changed when we add
+        # more sources to simply skip over it (there can be mixed opsgenies)
+        rule = [ r for r in rules if r in message ]
+        if len(rule) < 1:
+            sys.exit(f"{message} isn't configured in prometheus.")
+        alert = (rule[0], count)
         alerts.append(alert)
-        naughty_hosts.append(host)
 
     return([alerts, naughty_hosts])
 

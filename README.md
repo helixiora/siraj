@@ -14,33 +14,42 @@ Python > 3.10
 
 Check requirements.txt for modules.
 
+The tool would require access to OpsGenie's endpoint itself if that mode is to be used. Not needed for CSV mode but that mode is only to be used in extreme cases as it has to rely on string slicing.
+
+When using Prometheus your prometheus API endpoint needs to be accessible to the tool. Right now authentication is not supported, but Prometheus itself doesn't require it by default. It can be bypassed using other ways also, I'll consider adding optional auth in the future, but it seems uneccessary at the moment.
+
 ### Usage:
 
-siraj.py [-h] -m {api,csv} [--file FILE] [--output OUTPUT] [--api_key API_KEY] [--days_back DAYS_BACK] [--prometheus]
+The tool should be used with your OpsGenie API key to pull data. The source of the actual data is what is vitally important to the tool as the --source option. This tells it what logic to follow in order to getthe data we need and provide meaningful information.
+
+```
+usage: [-h] -m {api,csv} -s {prom} [--file FILE] [--output OUTPUT] [--api_key API_KEY] [--prometheus_api PROMETHEUS_API] [--days_back DAYS_BACK]
 
 Siraj, OpsGenie data analysis
 
 options:
   -h, --help            show this help message and exit
   -m {api,csv}, --mode {api,csv}
-                        Run mode
+                        Run mode REQUIRED
+  -s {prom}, --source {prom} 
+                        Source of the data in OpsGenie, e.g prometheus. REQUIRED
   --file FILE, -f FILE  Path to the file to use
   --output OUTPUT, -o OUTPUT
-                        Path to output HTML file. This file will be OVERWRITTEN. If not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html 
+                        Path to output HTML file, if not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html
   --api_key API_KEY, -a API_KEY
-                        Key to use
+                        Key to use REQUIRED
+  --prometheus_api PROMETHEUS_API, -p PROMETHEUS_API
+                        Prometheus API endpoint, e.g https://your_prom_instance/api/v1 REQUIRED
   --days_back DAYS_BACK, -d DAYS_BACK
                         How many days back to scrape
-  --prometheus, -p      Additional data manipulation if prometheus was the data source
-
-Note that --api_key, --days_back are REQUIRED when using the api mode.
-When using csv mode --file is the only REQUIRED option.
-
-### Examples:
-
-#### API:
 ```
-./siraj.py -m api -a $SOME_KEY -d 10
+
+
+#### Examples:
+
+##### Prometheus API:
+```
+./siraj.py -m api -s prom -p https://prometheus.instance.com/api/v1 --api_key SUPER-SECRET-KEY -d 2
                            Alert  Count
 5               DiskSpace10%Free   1524
 9                HighMemoryUsage    228
@@ -66,7 +75,9 @@ When using csv mode --file is the only REQUIRED option.
 ..                              ...    ...
 96               i.m.on.a.boat:2343      2
 ```
-#### CSV:
+##### Prometheus CSV - Offline :
+
+If you want to get data from a CSV file that was exported from the Opsgenie web UI because where the file lives you have no access, then the following can be done:
 
 ```
 ./siraj.py -m csv -f /path/to/my/special.csv
@@ -137,8 +148,7 @@ As you've seen in the examples Siraj outputs data to stdout and it also generate
 
 ### Limitations
 
-The only data I have available for it to work with in OpsGenie is Prometheus generated. If I can get my hands on something more I'll extend this so it can interpret that properly too.
-Your prometheus alerts need to not have spaces in their names. The logic uses slicing on spaces to guess that the host is the third field, so YMMV. The best way to bypass this is to extend the code to have an input file with the list of your hosts so it can look for those in the source data.
+The only data I have available for it to work with in OpsGenie is Prometheus generated. If I can get my hands on something more I'll extend this, so it can interpret that properly too. 
 
 ### Contributions
 
