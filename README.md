@@ -22,28 +22,34 @@ When using Prometheus your prometheus API endpoint needs to be accessible to the
 
 The tool should be used with your OpsGenie API key to pull data. The source of the actual data is what is vitally important to the tool as the --source option. This tells it what logic to follow in order to getthe data we need and provide meaningful information.
 
+You can also load HTML pages from old reports to generate the data in the diff tables.
+
 ```
-usage: [-h] -m {api,csv} -s {prom} [--file FILE] [--output OUTPUT] [--api_key API_KEY] [--prometheus_api PROMETHEUS_API] [--days_back DAYS_BACK]
+Options:
+[-h] -m {api,csv} -s {prom} [--file FILE] [--output OUTPUT] [--api_key API_KEY] [--prometheus_api PROMETHEUS_API] [--days_back DAYS_BACK] [--date_range DATE_RANGE DATE_RANGE] [--diff DIFF]
 
 Siraj, OpsGenie data analysis
 
 options:
   -h, --help            show this help message and exit
-  -m {api,csv}, --mode {api,csv}
-                        Run mode REQUIRED
-  -s {prom}, --source {prom} 
-                        Source of the data in OpsGenie, e.g prometheus. REQUIRED
-  --file FILE, -f FILE  Path to the file to use
-  --output OUTPUT, -o OUTPUT
+  -m {api,csv}, --mode {api,csv} *REQUIRED*
+                        Run mode
+  -s {prom}, --source {prom} *REQUIRED*
+                        Source of the data in OpsGenie, e.g prometheus.
+  --file FILE, -f FILE  Path to the file to use *OPTIONAL*
+  --output OUTPUT, -o OUTPUT *OPTIONAL*
                         Path to output HTML file, if not specifed defaults to local_dir/ops_genie_analysis_TIMESTAMP.html
-  --api_key API_KEY, -a API_KEY
-                        Key to use REQUIRED
-  --prometheus_api PROMETHEUS_API, -p PROMETHEUS_API
-                        Prometheus API endpoint, e.g https://your_prom_instance/api/v1 REQUIRED
+  --api_key API_KEY, -a API_KEY *REQUIRED*
+                        Key for opsgenie 
+  --prometheus_api PROMETHEUS_API, -p PROMETHEUS_API *REQUIRED*
+                        Prometheus API endpoint, e.g https://your_prom_instance/api/v1 
   --days_back DAYS_BACK, -d DAYS_BACK
                         How many days back to scrape
-```
+  --date_range DATE_RANGE DATE_RANGE 
+                        Data-range for extraction, format should be dd-mm-YYYY dd-mm-YYYY *Either this or days back is required.*
+  --diff DIFF           URL of previous report to compare to *OPTIONAL*
 
+```
 
 #### Examples:
 

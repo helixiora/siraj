@@ -120,7 +120,38 @@ def get_timestamp():
     time_stamp = d_t.strftime("%d-%m-%Y_%H:%M:%S")
     return time_stamp
 
-def generate_output(output, alerts, instances):
+def compare_diff(new_frame, old_frame, merge_key):
+    '''
+        Takes new and old frame and merge key (column name alerts/instances)
+        Returns frame with added diff count and percentage change
+    '''
+    # Remove the old diffs
+    if '%_diff' in new_frame:
+        new_frame.drop('%_diff', axis=1, inplace=True)
+    if 'Diff' in new_frame:
+        new_frame.drop('Diff', axis=1, inplace=True)
+    merged = new_frame.merge(old_frame, how='left', on=merge_key)
+    merged['Diff'] = merged['Count_x'] - merged['Count_y']
+    merged['%_diff'] = round(((merged['Count_x'] - merged['Count_y']) / merged['Count_y']) * 100, 2)
+    diff = merged['Diff'].to_list()
+    pct = merged['%_diff'].to_list()
+    new_frame['Diff'] = diff
+    new_frame['%_diff'] = pct
+
+    return new_frame
+
+def get_dropped_alerts(new_frame, old_frame):
+    '''
+       Takes new and old frame.
+       Returns list of alerts you've defeated.
+    '''
+    merged = old_frame.merge(new_frame.drop_duplicates(),
+                             how='left', on='Alert', indicator=True)
+    dropped = merged.loc[merged['_merge'] == 'left_only']['Alert'].to_list()
+
+    return dropped
+
+def generate_output(output, alerts, instances, diff, period):
     '''
       Do final sorting of the dataframes.
       Generates html file output.
@@ -131,16 +162,25 @@ def generate_output(output, alerts, instances):
     instances = get_counts(instances, index="Instance")
     alerts = add_percentages(alerts)
     instances = add_percentages(instances)
+    if diff:
+        old_frames = pd.read_html(diff)
+        alerts = compare_diff(alerts, old_frames[0], 'Alert')
+        instances = compare_diff(instances, old_frames[1], 'Instance')
+        cured = get_dropped_alerts(alerts, old_frames[0])
+    else:
+        cured = ["Unknown"]
     time_stamp = get_timestamp()
     print(alerts)
     print(instances)
     if not output:
         output = os.getcwd() + "/ops_genie_analysis_" + time_stamp + ".html"
-    # Consider using a template file and concatenate that.
-    output_content_0 = f"<h2>Generated @ {time_stamp}</h2>"
-    output_content_1 = "<h2> Alerts: </h2>" + "\n" + alerts.to_html(justify="center", index=False)
-    output_content_2 = "\n" + "<h2> Naughty Hosts: </h2>" + "\n"
-    output_content_3 = instances.to_html(justify="center", index=False)
-    output_content = output_content_0 + output_content_1 + output_content_2 + output_content_3
+    # For portability doing this, a template file might be better in future.
+    output_content = f"<h2>Generated @ {time_stamp}</h2>\n"
+    output_content += f"<h2>{period}</h2>\n"
+    output_content += "<h2> Alerts: </h2>" + "\n" + alerts.to_html(justify="center", index=False)
+    output_content += "\n<h3> Cured symptomps: </h3>\n"
+    output_content +=  f"<b> {' '.join(cured)} </b>"
+    output_content += "\n" + "<h2> Naughty Hosts: </h2>" + "\n"
+    output_content += instances.to_html(justify="center", index=False)
     with open(output, 'w', encoding='UTF-8') as output_file:
         output_file.write(output_content)
