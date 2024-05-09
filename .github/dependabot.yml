@@ -1,5 +1,15 @@
 version: 2
 updates:
+  #GH actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all:
+        patterns:
+          - "*"  # Group name for all updates
+  # Python
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
